@@ -20,4 +20,5 @@ module:testrunner
 
 # POST	/priv_key								  PrivateKey.create
 
+*      /                      					  Errors.NotFound
 *      /*                      					  Errors.NotFound
