@@ -18,7 +18,7 @@ module:testrunner
 # Catch all
 # *       /:controller/:action                    :controller.:action
 
-# POST	/priv_key								  PrivateKey.create
+POST	/private_key								  PrivateKey.create
 
 *      /                      					  Errors.NotFound
 *      /*                      					  Errors.NotFound
