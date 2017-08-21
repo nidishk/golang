@@ -12,10 +12,10 @@ func (t *AppTest) Before() {
 	println("Set up")
 }
 
-func (t *AppTest) TestThatIndexPageWorks() {
+func (t *AppTest) TestThatRootPathIsNotFound() {
 	t.Get("/")
-	t.AssertOk()
-	t.AssertContentType("text/html; charset=utf-8")
+	t.AssertNotFound()
+	t.AssertContentType("application/json; charset=utf-8")
 }
 
 func (t *AppTest) After() {
