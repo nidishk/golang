@@ -2,38 +2,44 @@ package controllers
 
 import (
 	"github.com/revel/revel"
-    "github.com/tyler-smith/go-bip32"
-    "github.com/tyler-smith/go-bip39"
+	"github.com/tyler-smith/go-bip32"
+	"github.com/tyler-smith/go-bip39"
 )
 
 type PrivateKey struct {
-	*revel.Controller
+	App
 }
 
-type MnemonicKeyRes struct {
-    Key []byte `json:"key"`
-    Mnemonic string `json:"mnemonic"`
+type mnemonicKeyRes struct {
+	Key      []byte `json:"key"`
+	Mnemonic string `json:"mnemonic"`
 }
 
-func (c PrivateKey) Create() revel.Result {
-	var jsonData map[string]string
-	c.Params.BindJSON(&jsonData)
-
-	masterKey, mnemonic := GenerateMasterKeyPair(jsonData["password"])
-
-	responseData := MnemonicKeyRes{Key: masterKey.Key, Mnemonic: mnemonic}
-
-	return c.RenderJSON(responseData)
+type errorRes struct {
+	Message string                            `json:"message"`
+	Errors  map[string]*revel.ValidationError `json:"errors"`
 }
 
-func GenerateMasterKeyPair(password string) (*bip32.Key, string) {
-  // Generate a mnemonic for memorization or user-friendly seeds
-  entropy, _ := bip39.NewEntropy(256)
-  mnemonic, _ := bip39.NewMnemonic(entropy)
+func (c PrivateKey) Create(id, password string) revel.Result {
 
-  seed := bip39.NewSeed(mnemonic, password)
+	c.Validation.Required(id).Message("Id is required.")
+	c.Validation.Required(password).Message("Password is required.")
+	c.Validation.MinSize(password, 8).Message("Password must be at least 8 characters.")
+	c.Validation.MaxSize(password, 64).Message("Password must be at most 64 characters.")
 
-  masterKey, _ := bip32.NewMasterKey(seed)
+	if c.Validation.HasErrors() {
+		c.Response.Status = 422
+		return c.RenderJSON(errorRes{Message: "Errors in request", Errors: c.Validation.ErrorMap()})
+	}
 
-  return masterKey, mnemonic
+	masterKey, mnemonic := generateMasterKeyPair(password)
+	return c.RenderJSON(mnemonicKeyRes{Key: masterKey.Key, Mnemonic: mnemonic})
+}
+
+func generateMasterKeyPair(password string) (*bip32.Key, string) {
+	entropy, _ := bip39.NewEntropy(256)
+	mnemonic, _ := bip39.NewMnemonic(entropy)
+	seed := bip39.NewSeed(mnemonic, password)
+	masterKey, _ := bip32.NewMasterKey(seed)
+	return masterKey, mnemonic
 }
