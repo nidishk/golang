@@ -72,7 +72,7 @@ func (t *PrivateKeyTest) TestCreateActionGereratesKeyAndMneonics() {
 
 	key := response.Key
 	t.Assert(key != "")
-	t.Assert(len(key) == 44)
+	t.Assert(len(key) == 111)
 
 	mnemonic := response.Mnemonic
 	t.Assert(mnemonic != "")
