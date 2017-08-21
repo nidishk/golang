@@ -11,7 +11,7 @@ type PrivateKey struct {
 }
 
 type mnemonicKeyRes struct {
-	Key      []byte `json:"key"`
+	Key      string `json:"key"`
 	Mnemonic string `json:"mnemonic"`
 }
 
@@ -32,14 +32,33 @@ func (c PrivateKey) Create(id, password string) revel.Result {
 		return c.RenderJSON(errorRes{Message: "Request not valid!", Errors: c.Validation.ErrorMap()})
 	}
 
-	masterKey, mnemonic := generateMasterKeyPair(password)
-	return c.RenderJSON(mnemonicKeyRes{Key: masterKey.Key, Mnemonic: mnemonic})
+	mnemonic, error := getMnemonic()
+	firstDerivedKey, error := getPrivateKey(mnemonic, password)
+
+  if error != nil {
+    c.Response.Status = 500
+		return c.RenderJSON(errorRes{Message: "Internal Server Error!"})
+	}
+	return c.RenderJSON(mnemonicKeyRes{Key: firstDerivedKey, Mnemonic: mnemonic})
 }
 
-func generateMasterKeyPair(password string) (*bip32.Key, string) {
-	entropy, _ := bip39.NewEntropy(256)
-	mnemonic, _ := bip39.NewMnemonic(entropy)
-	seed := bip39.NewSeed(mnemonic, password)
-	masterKey, _ := bip32.NewMasterKey(seed)
-	return masterKey, mnemonic
+func getMnemonic() (string, error){
+  // Mnemonic Geneation
+  entropy, error := bip39.NewEntropy(256)
+  mnemonic, error := bip39.NewMnemonic(entropy)
+	return mnemonic, error
+}
+
+func getPrivateKey(mnemonic string, password string) (string, error) {
+  // Seed for the Private key generation
+  seed := bip39.NewSeed(mnemonic, password)
+  masterKey, error := bip32.NewMasterKey(seed)
+
+  //Private Key m/0
+  bip32PrivateKey, error := masterKey.NewChildKey(0)
+
+  // Private key for m/0/0
+  firstDerivedKey, error := bip32PrivateKey.NewChildKey(0)
+
+  return firstDerivedKey.String(), error
 }
