@@ -29,7 +29,7 @@ func (c PrivateKey) Create(id, password string) revel.Result {
 
 	if c.Validation.HasErrors() {
 		c.Response.Status = 422
-		return c.RenderJSON(errorRes{Message: "Errors in request", Errors: c.Validation.ErrorMap()})
+		return c.RenderJSON(errorRes{Message: "Request not valid!", Errors: c.Validation.ErrorMap()})
 	}
 
 	masterKey, mnemonic := generateMasterKeyPair(password)

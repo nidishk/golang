@@ -16,7 +16,7 @@ type MnemonicKeyTest struct {
 	Mnemonic string `json:"mnemonic"`
 }
 
-func (t *PrivateKeyTest) TestValidationWorksProperly() {
+func (t *PrivateKeyTest) TestCreateActionValidationWorksProperly() {
 	t.PostForm("/private_key", nil)
 	t.AssertStatus(422)
 	t.AssertContains("Id is required.")
@@ -58,7 +58,7 @@ func (t *PrivateKeyTest) TestValidationWorksProperly() {
 	t.AssertContains("Password must be at most 64 characters.")
 }
 
-func (t *PrivateKeyTest) TestItGereratesKeyAndMneonics() {
+func (t *PrivateKeyTest) TestCreateActionGereratesKeyAndMneonics() {
 	t.PostForm("/private_key", url.Values{
 		"id": {"12345"}, "password": {"abcdefgh"},
 	})
